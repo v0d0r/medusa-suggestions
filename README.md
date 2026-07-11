@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Medusa Suggestions
 
 A lightweight TV show suggestion and discovery app that integrates with [Medusa](https://github.com/pymedusa/Medusa) PVR. Browse trending, popular, and upcoming shows from TMDb, let users suggest shows, and approve them directly into Medusa with one click.
@@ -109,8 +110,13 @@ services:
 
 ## Screenshots
 
-*Coming soon*
+![Medusa Suggestions](medusa-suggest-screenshot1.png)
+
 
 ## License
 
 MIT
+=======
+# medusa-suggestions
+TV show suggestion and discovery app for Medusa PVR with TMDb integration
+>>>>>>> f98baef7a43d40d6e529aabf4200a931ef49def3
