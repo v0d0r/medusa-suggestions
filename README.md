@@ -117,6 +117,8 @@ services:
 
 This product uses the [TMDb API](https://www.themoviedb.org/documentation/api) but is not endorsed or certified by TMDb.
 
+Special thanks to the [Medusa](https://github.com/pymedusa/Medusa) project for their work and inspiration.
+
 
 ## License
 
