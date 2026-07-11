@@ -64,7 +64,7 @@ All configuration is done via the web UI after first launch:
 5. Enter your **TMDb API Key** (free from [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api))
 6. Configure your filters and streaming services
 
-### Environment Variables
+### Environment Variables (set in docker-compose.yml)
 
 | Variable | Description | Default |
 |----------|-------------|---------|
