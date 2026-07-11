@@ -70,7 +70,6 @@ All configuration is done via the web UI after first launch:
 |----------|-------------|---------|
 | `ADMIN_PASSWORD` | Initial admin password (used on first run to create admin user) | `admin` |
 | `SECRET_KEY` | Secret for signing session cookies (change this!) | `medusa-suggestions-secret-change-me` |
-| `DB_PATH` | Path to SQLite database | `/data/suggestions.db` |
 
 ### Getting API Keys
 
