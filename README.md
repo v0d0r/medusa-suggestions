@@ -14,8 +14,8 @@ A lightweight TV show suggestion and discovery app that integrates with [Medusa]
 - **Suggest** — Users click "Suggest" to add a show to the pending queue
 - **Admin Approval** — Approve or ignore suggestions; approved shows get added to Medusa automatically via API
 - **Already in Medusa** — Shows already in your Medusa library are flagged with "✓ In Medusa" instead of a suggest button
-- **Streaming Providers** — See which streaming services carry each show (lazy-loaded, cached 24h)
-- **"Watch on" Detection** — If a show is on your streaming services, it shows "📺 Watch on Netflix" instead of suggest
+- **Streaming Providers** — Shows which streaming services carry each show on every card (lazy-loaded, cached 24h)
+- **"Watch on" Detection** — If a show is already available on a streaming service you subscribe to (configured in admin settings), the suggest button is replaced with "📺 Watch on [service]" — preventing unnecessary downloads of shows you can already stream
 - **Trailers** — YouTube trailer links on each card
 - **Multi-User** — Optional login system with per-user filter preferences
   - Anonymous users see global defaults and can suggest
