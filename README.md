@@ -43,7 +43,7 @@ A lightweight TV show suggestion and discovery app that integrates with [Medusa]
 ## Quick Start
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/medusa-suggestions.git
+git clone https://github.com/v0d0r/medusa-suggestions.git
 cd medusa-suggestions
 
 # Edit docker-compose.yml to set your ADMIN_PASSWORD and SECRET_KEY
