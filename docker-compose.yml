@@ -1,0 +1,12 @@
+services:
+  medusa-suggestions:
+    build: .
+    container_name: medusa-suggestions
+    ports:
+      - "8087:8555"
+    volumes:
+      - ./data:/data
+    environment:
+      - ADMIN_PASSWORD=changeme
+      - SECRET_KEY=change-this-to-a-random-string
+    restart: unless-stopped

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block extra_styles %}
+.admin-section { margin-bottom: 2.5rem; }
+.admin-section h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #333;
+}
+.admin-section h2 .count { color: #888; font-weight: normal; font-size: 0.9rem; }
+.suggestion-list { display: flex; flex-direction: column; gap: 0.8rem; }
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #16213e;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+}
+.suggestion-item img {
+    width: 50px;
+    height: 75px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: #0f3460;
+}
+.suggestion-item .no-img {
+    width: 50px;
+    height: 75px;
+    background: #0f3460;
+    border-radius: 4px;
+}
+.suggestion-info { flex: 1; }
+.suggestion-info h4 { font-size: 0.95rem; margin-bottom: 0.2rem; }
+.suggestion-info .meta { font-size: 0.75rem; color: #888; }
+.suggestion-actions { display: flex; gap: 0.5rem; }
+.btn-approve, .btn-ignore {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+.btn-approve { background: #2d6a4f; color: #b7e4c7; }
+.btn-approve:hover { background: #40916c; }
+.btn-ignore { background: #5c1a1a; color: #f4a3a3; }
+.btn-ignore:hover { background: #7a2020; }
+.empty { color: #666; font-style: italic; padding: 1rem 0; }
+.logout { float: right; color: #888; font-size: 0.85rem; }
+{% endblock %}
+
+{% block content %}
+<a href="/admin/logout" class="logout">Logout</a>
+<h1 style="margin-bottom: 1.5rem;">Admin Dashboard</h1>
+<a href="/admin/settings" style="color: #8be9fd; font-size: 0.9rem;">⚙️ Settings</a> · <a href="/admin/users" style="color: #8be9fd; font-size: 0.9rem;">👥 Users</a>
+
+<div class="admin-section">
+    <h2>Pending <span class="count">({{ pending|length }})</span></h2>
+    {% if pending %}
+    <div class="suggestion-list">
+        {% for s in pending %}
+        <div class="suggestion-item">
+            {% if s.poster_path %}
+            <img src="{{ s.poster_path }}" alt="{{ s.title }}">
+            {% else %}
+            <div class="no-img"></div>
+            {% endif %}
+            <div class="suggestion-info">
+                <h4>{{ s.title }}</h4>
+                <div class="meta">
+                    {% if s.first_air_date %}{{ s.first_air_date[:4] }} · {% endif %}
+                    TVDB: {{ s.tvdb_id or "N/A" }} ·
+                    Suggested {{ s.created_at }}
+                </div>
+            </div>
+            <div class="suggestion-actions">
+                <form method="post" action="/admin/approve/{{ s.id }}">
+                    <button type="submit" class="btn-approve">✓ Add</button>
+                </form>
+                <form method="post" action="/admin/ignore/{{ s.id }}">
+                    <button type="submit" class="btn-ignore">✗ Ignore</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">No pending suggestions.</p>
+    {% endif %}
+</div>
+
+<div class="admin-section">
+    <h2>Approved <span class="count">({{ approved|length }})</span></h2>
+    {% if approved %}
+    <div class="suggestion-list">
+        {% for s in approved %}
+        <div class="suggestion-item">
+            {% if s.poster_path %}
+            <img src="{{ s.poster_path }}" alt="{{ s.title }}">
+            {% else %}
+            <div class="no-img"></div>
+            {% endif %}
+            <div class="suggestion-info">
+                <h4>{{ s.title }}</h4>
+                <div class="meta">{{ s.first_air_date or "" }} · Added {{ s.updated_at }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">No approved shows yet.</p>
+    {% endif %}
+</div>
+
+<div class="admin-section">
+    <h2>Ignored <span class="count">({{ ignored|length }})</span></h2>
+    {% if ignored %}
+    <div class="suggestion-list">
+        {% for s in ignored %}
+        <div class="suggestion-item">
+            {% if s.poster_path %}
+            <img src="{{ s.poster_path }}" alt="{{ s.title }}">
+            {% else %}
+            <div class="no-img"></div>
+            {% endif %}
+            <div class="suggestion-info">
+                <h4>{{ s.title }}</h4>
+                <div class="meta">{{ s.first_air_date or "" }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">No ignored shows.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

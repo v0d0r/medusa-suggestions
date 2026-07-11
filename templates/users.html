@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block extra_styles %}
+.users-page { max-width: 650px; }
+.users-page h1 { margin-bottom: 1.5rem; }
+.msg { padding: 0.7rem 1rem; border-radius: 6px; margin-bottom: 1.5rem; font-size: 0.85rem; }
+.msg.success { background: #1b4332; color: #95d5b2; }
+.msg.error { background: #5c1a1a; color: #f4a3a3; }
+.user-list { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2rem; }
+.user-item {
+    display: flex; align-items: center; gap: 1rem;
+    background: #16213e; padding: 0.8rem 1rem; border-radius: 8px;
+}
+.user-item .user-info { flex: 1; }
+.user-item .user-info h4 { font-size: 0.95rem; margin-bottom: 0.2rem; }
+.user-item .user-info .meta { font-size: 0.75rem; color: #888; }
+.user-item .user-actions { display: flex; gap: 0.5rem; align-items: center; }
+.user-item .user-actions input { width: 120px; padding: 0.3rem 0.5rem; border-radius: 4px; border: 1px solid #333; background: #1a1a2e; color: #eee; font-size: 0.8rem; }
+.user-item .user-actions button { padding: 0.3rem 0.6rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+.btn-reset { background: #1b3a5c; color: #a2d2ff; }
+.btn-delete { background: #5c1a1a; color: #f4a3a3; }
+.add-user-form { background: #16213e; padding: 1.2rem; border-radius: 8px; }
+.add-user-form h3 { font-size: 0.95rem; margin-bottom: 0.8rem; }
+.add-user-form .fields { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.add-user-form input { padding: 0.5rem 0.8rem; border-radius: 6px; border: 1px solid #333; background: #1a1a2e; color: #eee; font-size: 0.85rem; flex: 1; min-width: 140px; }
+.add-user-form button { padding: 0.5rem 1rem; border: none; border-radius: 6px; background: #e94560; color: white; cursor: pointer; font-size: 0.85rem; white-space: nowrap; }
+.back { color: #888; font-size: 0.85rem; }
+{% endblock %}
+
+{% block content %}
+<div class="users-page">
+    <a href="/admin" class="back">← Back to Dashboard</a>
+    <h1>User Management</h1>
+
+    {% if msg == "user_added" %}
+    <div class="msg success">✓ User added.</div>
+    {% elif msg == "user_exists" %}
+    <div class="msg error">✗ Username already exists.</div>
+    {% elif msg == "user_deleted" %}
+    <div class="msg success">✓ User deleted.</div>
+    {% elif msg == "password_reset" %}
+    <div class="msg success">✓ Password reset.</div>
+    {% endif %}
+
+    <div class="user-list">
+        {% for u in users %}
+        <div class="user-item">
+            <div class="user-info">
+                <h4>{{ u.username }} {% if u.is_admin %}<span style="color: #e94560; font-size: 0.7rem;">ADMIN</span>{% endif %}</h4>
+                <div class="meta">Created {{ u.created_at }}</div>
+            </div>
+            <div class="user-actions">
+                {% if not u.is_admin %}
+                <form method="post" action="/admin/users/reset-password/{{ u.id }}" style="display:flex; gap:0.3rem;">
+                    <input type="text" name="new_password" placeholder="New password" required>
+                    <button type="submit" class="btn-reset">Reset</button>
+                </form>
+                <form method="post" action="/admin/users/delete/{{ u.id }}">
+                    <button type="submit" class="btn-delete" onclick="return confirm('Delete {{ u.username }}?')">Delete</button>
+                </form>
+                {% else %}
+                <span style="color: #555; font-size: 0.75rem;">Cannot modify admin</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="add-user-form">
+        <h3>Add New User</h3>
+        <form method="post" action="/admin/users/add">
+            <div class="fields">
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="text" name="password" placeholder="Password" required>
+                <button type="submit">Add User</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block extra_styles %}
+.prefs-form { max-width: 650px; }
+.prefs-form h1 { margin-bottom: 0.5rem; }
+.prefs-form .subtitle { color: #888; font-size: 0.85rem; margin-bottom: 1.5rem; }
+.prefs-form h2 { font-size: 1rem; margin-top: 1.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #333; color: #e94560; }
+.field { margin-bottom: 1.2rem; }
+.field label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.3rem; color: #ccc; }
+.field input, .field select { width: 100%; padding: 0.6rem 0.8rem; border-radius: 6px; border: 1px solid #333; background: #16213e; color: #eee; font-size: 0.9rem; }
+.field .hint { font-size: 0.75rem; color: #666; margin-top: 0.3rem; }
+.field .global-default { font-size: 0.7rem; color: #555; margin-top: 0.2rem; font-style: italic; }
+.btn-save { padding: 0.7rem 2rem; border: none; border-radius: 6px; background: #e94560; color: white; cursor: pointer; font-size: 0.9rem; }
+.btn-save:hover { background: #c73e54; }
+.msg { padding: 0.7rem 1rem; border-radius: 6px; margin-bottom: 1.5rem; font-size: 0.85rem; }
+.msg.success { background: #1b4332; color: #95d5b2; }
+.genre-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem 2rem; margin-top: 0.5rem; }
+.genre-grid label { font-size: 0.8rem; color: #aaa; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+.genre-grid input[type="checkbox"] { accent-color: #e94560; flex-shrink: 0; width: 16px; height: 16px; }
+{% endblock %}
+
+{% block content %}
+<div class="prefs-form">
+    <h1>My Preferences</h1>
+    <p class="subtitle">Override the default filters for your account. Leave blank to use global defaults.</p>
+
+    {% if msg == "saved" %}
+    <div class="msg success">✓ Preferences saved.</div>
+    {% endif %}
+
+    <form method="post" action="/preferences">
+        <h2>🎛️ My Filters</h2>
+
+        <div class="field">
+            <label for="allowed_languages">Allowed Languages</label>
+            <input type="text" id="allowed_languages" name="allowed_languages" value="{{ user_settings.get('allowed_languages', '') }}" placeholder="Leave blank for global default">
+            <div class="hint">Common codes: en (English), ko (Korean), ja (Japanese), fr (French), de (German), es (Spanish), zh (Chinese), pt (Portuguese), it (Italian), nl (Dutch), sv (Swedish), da (Danish), no (Norwegian), fi (Finnish), pl (Polish), tr (Turkish), th (Thai), hi (Hindi), ar (Arabic), ru (Russian). Comma-separated, lowercase.</div>
+            <div class="global-default">Global default: {{ global_settings.allowed_languages or 'all' }}</div>
+        </div>
+
+        <div class="field">
+            <label for="excluded_countries">Excluded Origin Countries</label>
+            <input type="text" id="excluded_countries" name="excluded_countries" value="{{ user_settings.get('excluded_countries', '') }}" placeholder="Leave blank for global default">
+            <div class="hint">ISO 3166-1 codes. IN=India, KR=South Korea, JP=Japan, CN=China, TR=Turkey</div>
+            <div class="global-default">Global default: {{ global_settings.excluded_countries or 'none' }}</div>
+        </div>
+
+        <div class="field">
+            <label>Excluded Genres</label>
+            <input type="hidden" id="excluded_genres" name="excluded_genres" value="{{ user_settings.get('excluded_genres', '') }}">
+            <div class="genre-grid">
+                {% set current_excluded = user_settings.get('excluded_genres', '').split(',') if user_settings.get('excluded_genres') else [] %}
+                {% set genres = [
+                    ("16", "Animation"),
+                    ("10759", "Action & Adventure"),
+                    ("35", "Comedy"),
+                    ("80", "Crime"),
+                    ("99", "Documentary"),
+                    ("18", "Drama"),
+                    ("10751", "Family"),
+                    ("10762", "Kids"),
+                    ("9648", "Mystery"),
+                    ("10763", "News"),
+                    ("10764", "Reality"),
+                    ("10765", "Sci-Fi & Fantasy"),
+                    ("10766", "Soap"),
+                    ("10767", "Talk"),
+                    ("10768", "War & Politics"),
+                    ("37", "Western"),
+                ] %}
+                {% for genre_id, genre_name in genres %}
+                <label>
+                    <input type="checkbox" value="{{ genre_id }}" class="genre-cb" {% if genre_id in current_excluded %}checked{% endif %}>
+                    {{ genre_name }}
+                </label>
+                {% endfor %}
+            </div>
+            <div class="hint">Checked genres will be excluded from your results.</div>
+        </div>
+
+        <div class="field">
+            <label for="min_vote_average">Minimum Rating</label>
+            <input type="number" id="min_vote_average" name="min_vote_average" value="{{ user_settings.get('min_vote_average', '') }}" min="0" max="10" step="0.5" placeholder="Leave blank for global default">
+            <div class="global-default">Global default: {{ global_settings.min_vote_average or '0' }}</div>
+        </div>
+
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <button type="submit" class="btn-save">Save Preferences</button>
+        </div>
+    </form>
+</div>
+
+<script>
+const genreHidden = document.getElementById('excluded_genres');
+const genreCheckboxes = document.querySelectorAll('.genre-cb');
+function syncGenres() {
+    genreHidden.value = Array.from(genreCheckboxes).filter(cb => cb.checked).map(cb => cb.value).join(',');
+}
+genreCheckboxes.forEach(cb => cb.addEventListener('change', syncGenres));
+
+}
+</script>
+{% endblock %}
