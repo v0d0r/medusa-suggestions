@@ -76,7 +76,10 @@ All configuration is done via the web UI after first launch:
 #### TMDb
 1. Create an account at https://www.themoviedb.org
 2. Go to Settings → API → Request an API key
-3. Use the **API Key (v3 auth)** value (short hex string, NOT the long JWT token)
+3. On the API page you will see two values:
+   - **API Key (v3 auth)** — a short hex string (e.g. 170445e85fa9019d5ae6a829) ← **USE THIS ONE**
+   - **API Read Access Token (v4 auth)** — a long string starting with eyJ... ← DO NOT use this
+4. If you only see the long JWT token, your v3 key is embedded inside it. Paste the JWT at https://jwt.io and look for the aud field in the payload — that value is your v3 API key
 
 #### Medusa
 1. Open your Medusa web UI
