@@ -1,4 +1,12 @@
-"""Medusa API v2 client for adding shows."""
+"""Medusa PVR API v2 client.
+
+Handles communication with a Medusa instance to:
+- Test connectivity
+- Fetch the current show library  
+- Add new shows when suggestions are approved
+
+Medusa API docs: https://github.com/pymedusa/Medusa/wiki/API-v2
+"""
 
 import httpx
 from database import get_settings

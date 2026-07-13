@@ -1,4 +1,8 @@
-"""Configuration for Medusa Suggestions app."""
+"""Configuration for Medusa Suggestions app.
+
+All sensitive values are loaded from environment variables with safe defaults.
+These are typically set in docker-compose.yml.
+"""
 
 import os
 from pathlib import Path

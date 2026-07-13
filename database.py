@@ -1,8 +1,20 @@
-"""SQLite database layer for suggestions."""
+"""SQLite database layer for Medusa Suggestions.
+
+Manages all data persistence including:
+- Show suggestions (pending/approved/ignored)
+- Global admin settings (API keys, filters, layout)
+- User accounts and authentication
+- Per-user filter preference overrides
+- Streaming provider cache (24h TTL)
+"""
 
 import aiosqlite
 from passlib.hash import bcrypt
 from config import DATABASE_PATH, ADMIN_PASSWORD
+
+# ==========================================================================
+# DATABASE SCHEMA
+# ==========================================================================
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS suggestions (
@@ -47,6 +59,10 @@ CREATE TABLE IF NOT EXISTS user_settings (
 );
 """
 
+# ==========================================================================
+# DEFAULT SETTINGS
+# ==========================================================================
+
 # Default settings (used if not yet saved in DB)
 DEFAULT_SETTINGS = {
     "allowed_languages": "en",
@@ -69,6 +85,10 @@ USER_OVERRIDABLE_KEYS = {
     "min_vote_average",
 }
 
+
+# ==========================================================================
+# DATABASE CONNECTION
+# ==========================================================================
 
 async def get_db() -> aiosqlite.Connection:
     db = await aiosqlite.connect(DATABASE_PATH)
@@ -97,7 +117,9 @@ async def init_db():
         await db.close()
 
 
-# --- User management ---
+# ==========================================================================
+# USER MANAGEMENT
+# ==========================================================================
 
 async def get_user_by_username(username: str) -> dict | None:
     db = await get_db()
@@ -173,7 +195,9 @@ async def update_user_password(user_id: int, new_password: str):
         await db.close()
 
 
-# --- User settings (personal overrides) ---
+# ==========================================================================
+# USER SETTINGS (PERSONAL FILTER OVERRIDES)
+# ==========================================================================
 
 async def get_user_settings(user_id: int) -> dict:
     """Get a user's personal filter overrides."""
@@ -214,7 +238,9 @@ async def get_effective_settings(user_id: int | None = None) -> dict:
     return global_settings
 
 
-# --- Suggestions ---
+# ==========================================================================
+# SUGGESTIONS
+# ==========================================================================
 
 async def get_suggestions(status: str | None = None) -> list[dict]:
     db = await get_db()
@@ -268,7 +294,9 @@ async def update_suggestion_status(suggestion_id: int, status: str) -> dict | No
         await db.close()
 
 
-# --- Global settings ---
+# ==========================================================================
+# GLOBAL SETTINGS
+# ==========================================================================
 
 async def get_settings() -> dict:
     """Get all global settings, falling back to defaults."""
@@ -307,7 +335,9 @@ async def save_settings(settings: dict):
         await db.close()
 
 
-# --- Providers cache ---
+# ==========================================================================
+# PROVIDERS CACHE (24h TTL to avoid excessive TMDb API calls)
+# ==========================================================================
 
 async def get_cached_providers(tmdb_id: int) -> str | None:
     db = await get_db()

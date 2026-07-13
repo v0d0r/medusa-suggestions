@@ -20,6 +20,12 @@ from config import SECRET_KEY
 templates = Jinja2Templates(directory="templates")
 serializer = URLSafeSerializer(SECRET_KEY)
 
+# ==========================================================================
+# MEDUSA LIBRARY CACHE
+# Caches the list of TMDb IDs already in Medusa to avoid repeated API calls.
+# Refreshes every 5 minutes.
+# ==========================================================================
+
 # Simple in-memory cache for Medusa show list (refreshes every 5 minutes)
 _medusa_cache = {"tmdb_ids": [], "timestamp": 0}
 MEDUSA_CACHE_TTL = 300
@@ -41,6 +47,12 @@ async def get_medusa_tmdb_ids() -> list[int]:
     _medusa_cache["timestamp"] = now
     return tmdb_ids
 
+
+# ==========================================================================
+# SESSION / AUTH HELPERS
+# These functions handle reading the signed session cookie to identify
+# the current user, and enforcing login/admin requirements on routes.
+# ==========================================================================
 
 def get_current_user(request: Request) -> dict | None:
     """Get current user from session cookie, or None if not logged in."""
@@ -74,7 +86,12 @@ def require_login(request: Request):
         raise HTTPException(status_code=303, headers={"Location": "/login"})
 
 
-# --- Auth routes ---
+# ==========================================================================
+# AUTHENTICATION ROUTES
+# Handles login, logout, and user preference pages.
+# Login is optional - anonymous users can still browse and suggest.
+# ==========================================================================
+
 auth_router = APIRouter()
 
 
@@ -147,7 +164,12 @@ async def save_preferences(
     return RedirectResponse("/preferences?msg=saved", status_code=303)
 
 
-# --- User-facing routes ---
+# ==========================================================================
+# USER-FACING ROUTES
+# Main browsing pages (trending, popular, airing, upcoming, search)
+# and the suggestion form. These work for both anonymous and logged-in users.
+# ==========================================================================
+
 user_router = APIRouter()
 
 
@@ -239,6 +261,8 @@ async def suggest_show(
     return RedirectResponse("/?msg=suggested", status_code=303)
 
 
+# --- API endpoints (called by frontend JavaScript) ---
+
 @user_router.get("/api/providers/{tmdb_id}")
 async def get_providers(tmdb_id: int):
     providers = await tmdb_client.get_watch_providers(tmdb_id)
@@ -294,7 +318,12 @@ async def get_medusa_shows():
     return JSONResponse(content=tmdb_ids)
 
 
-# --- Admin routes ---
+# ==========================================================================
+# ADMIN ROUTES
+# Dashboard for approving/ignoring suggestions, global settings,
+# and user management. Requires admin login.
+# ==========================================================================
+
 admin_router = APIRouter(prefix="/admin")
 
 
@@ -381,6 +410,8 @@ async def test_medusa_connection(request: Request, _=Depends(require_admin)):
 
 
 # --- User management ---
+# --- User management (admin only) ---
+
 @admin_router.get("/users", response_class=HTMLResponse)
 async def users_page(request: Request, _=Depends(require_admin)):
     users = await get_all_users()

@@ -1,4 +1,15 @@
-"""TMDb API client for searching and browsing TV shows with filtering."""
+"""TMDb API client for searching and browsing TV shows.
+
+Handles all communication with The Movie Database (TMDb) API v3:
+- Discover/browse shows (trending, popular, airing today, upcoming)
+- Search for shows by name
+- Fetch streaming provider info (with 24h caching)
+- Fetch YouTube trailers
+- Get external IDs (TVDB) for Medusa integration
+
+Supports per-user filter overrides when a user_id is provided.
+TMDb API docs: https://developer.themoviedb.org/reference
+"""
 
 import json
 import httpx

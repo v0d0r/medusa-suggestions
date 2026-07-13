@@ -1,4 +1,8 @@
-"""Medusa Suggestions — main entrypoint."""
+"""Medusa Suggestions — main application entrypoint.
+
+Starts the FastAPI server and initializes the database on startup.
+Run with: python main.py (or: uvicorn main:app --host 0.0.0.0 --port 8555)
+"""
 
 from contextlib import asynccontextmanager
 
@@ -17,7 +21,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Medusa Suggestions", lifespan=lifespan)
 
-# Include routers
+# Register route groups:
+# - auth_router: login, logout, user preferences
+# - user_router: browsing, searching, suggesting, API endpoints
+# - admin_router: dashboard, settings, user management
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(admin_router)
