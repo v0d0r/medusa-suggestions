@@ -158,9 +158,12 @@ class TMDbClient:
         """Get trending TV shows (post-filtered, 3 pages)."""
         return await self._get_dedicated(f"trending/tv/{time_window}", start_page=start_page, user_id=user_id)
 
-    async def popular(self, start_page: int = 1, user_id: int | None = None) -> list[dict]:
+    async def popular(self, start_page: int = 1, user_id: int | None = None, sort: str = "popularity") -> list[dict]:
         """Get popular TV shows using discover endpoint (supports all filters, 3 pages)."""
-        return await self._discover(start_page=start_page, user_id=user_id)
+        from datetime import date
+        sort_by = "first_air_date.desc" if sort == "newest" else "popularity.desc"
+        extra = {"first_air_date.lte": date.today().isoformat()} if sort == "newest" else {}
+        return await self._discover(start_page=start_page, user_id=user_id, sort_by=sort_by, **extra)
 
     async def airing_today(self, start_page: int = 1, user_id: int | None = None) -> list[dict]:
         """Get shows airing today - uses dedicated TMDb endpoint."""

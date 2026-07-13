@@ -185,12 +185,13 @@ async def index(request: Request):
 
 
 @user_router.get("/popular", response_class=HTMLResponse)
-async def popular(request: Request):
-    shows = await tmdb_client.popular(user_id=get_current_user_id(request))
+async def popular(request: Request, sort: str = "popularity"):
+    shows = await tmdb_client.popular(user_id=get_current_user_id(request), sort=sort)
     return templates.TemplateResponse("index.html", {
         "request": request,
         "shows": shows,
         "tab": "popular",
+        "sort": sort,
         "user": get_current_user(request),
     })
 

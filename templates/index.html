@@ -8,6 +8,14 @@
 <div class="msg info">This show has already been suggested.</div>
 {% endif %}
 
+{% if tab == "popular" %}
+<div class="sort-toggle">
+    <span>Sort:</span>
+    <a href="/popular?sort=popularity" class="{% if sort != "newest" %}active{% endif %}">Most Popular</a>
+    <a href="/popular?sort=newest" class="{% if sort == "newest" %}active{% endif %}">Newest First</a>
+</div>
+{% endif %}
+
 {% if tab == "search" %}
 <form class="search-bar" action="/search" method="get">
     <input type="text" name="q" placeholder="Search for a TV show..." value="{{ query or '' }}" autofocus>
