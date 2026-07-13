@@ -36,6 +36,12 @@ CREATE TABLE IF NOT EXISTS settings (
     value TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS tvmaze_cache (
+    tmdb_id INTEGER PRIMARY KEY,
+    last_aired TEXT,
+    cached_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS providers_cache (
     tmdb_id INTEGER PRIMARY KEY,
     providers_json TEXT NOT NULL,
@@ -75,6 +81,7 @@ DEFAULT_SETTINGS = {
     "my_streaming_services": "",
     "card_min_width": "200",
     "grid_gap": "1.5",
+    "show_age_threshold": "10",
 }
 
 # Keys that users can override with personal preferences
@@ -242,10 +249,16 @@ async def get_effective_settings(user_id: int | None = None) -> dict:
 # SUGGESTIONS
 # ==========================================================================
 
-async def get_suggestions(status: str | None = None) -> list[dict]:
+async def get_suggestions(status: str | None = None, max_days: int | None = None) -> list[dict]:
+    """Fetch suggestions. If max_days is set, only return items updated within that period."""
     db = await get_db()
     try:
-        if status:
+        if status and max_days:
+            cursor = await db.execute(
+                f"SELECT * FROM suggestions WHERE status = ? AND updated_at > datetime('now', '-{max_days} days') ORDER BY created_at DESC",
+                (status,),
+            )
+        elif status:
             cursor = await db.execute(
                 "SELECT * FROM suggestions WHERE status = ? ORDER BY created_at DESC",
                 (status,),
@@ -358,6 +371,38 @@ async def cache_providers(tmdb_id: int, providers_json: str):
         await db.execute(
             "INSERT OR REPLACE INTO providers_cache (tmdb_id, providers_json, cached_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
             (tmdb_id, providers_json),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+
+
+
+# ==========================================================================
+# TVMAZE CACHE (for last-aired lookups on old shows without providers)
+# ==========================================================================
+
+async def get_cached_tvmaze(tmdb_id: int) -> str | None:
+    """Get cached TVmaze last_aired date if less than 7 days old."""
+    db = await get_db()
+    try:
+        cursor = await db.execute(
+            "SELECT last_aired FROM tvmaze_cache WHERE tmdb_id = ? AND cached_at > datetime('now', '-7 days')",
+            (tmdb_id,),
+        )
+        row = await cursor.fetchone()
+        return row["last_aired"] if row else None
+    finally:
+        await db.close()
+
+
+async def cache_tvmaze(tmdb_id: int, last_aired: str):
+    """Cache TVmaze last_aired date for a show."""
+    db = await get_db()
+    try:
+        await db.execute(
+            "INSERT OR REPLACE INTO tvmaze_cache (tmdb_id, last_aired, cached_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
+            (tmdb_id, last_aired),
         )
         await db.commit()
     finally:

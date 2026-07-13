@@ -293,6 +293,7 @@ async def get_layout():
     return JSONResponse(content={
         "card_min_width": settings.get("card_min_width", "200"),
         "grid_gap": settings.get("grid_gap", "1.5"),
+        "show_age_threshold": settings.get("show_age_threshold", "10"),
     })
 
 
@@ -312,6 +313,54 @@ async def get_my_services(request: Request):
     return JSONResponse(content=[])
 
 
+
+
+@user_router.get("/api/tvmaze-check/{tmdb_id}")
+async def tvmaze_check(tmdb_id: int):
+    """Check TVmaze for a show's last aired date (used for old shows without providers).
+    Looks up show by TVDB ID via TMDb external IDs, then checks TVmaze.
+    Returns the last aired year or null."""
+    import httpx
+    from database import get_cached_tvmaze, cache_tvmaze
+
+    # Check cache first
+    cached = await get_cached_tvmaze(tmdb_id)
+    if cached is not None:
+        return JSONResponse(content={"last_aired": cached})
+
+    # Get TVDB ID from TMDb
+    external_ids = await tmdb_client.get_external_ids(tmdb_id)
+    tvdb_id = external_ids.get("tvdb_id")
+    if not tvdb_id:
+        await cache_tvmaze(tmdb_id, "")
+        return JSONResponse(content={"last_aired": ""})
+
+    # Look up on TVmaze via TVDB ID
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(f"https://api.tvmaze.com/lookup/shows?thetvdb={tvdb_id}")
+            if resp.status_code == 200:
+                data = resp.json()
+                # Get ended date or last episode air date
+                ended = data.get("ended", "")
+                # If show hasn't ended, it's still active
+                status = data.get("status", "")
+                if status in ("Running", "To Be Determined"):
+                    last_aired = str(data.get("premiered", "")[:4]) if data.get("premiered") else ""
+                    # Actually it's active, use current year
+                    from datetime import date
+                    last_aired = str(date.today().year)
+                elif ended:
+                    last_aired = ended[:4]
+                else:
+                    last_aired = ""
+                await cache_tvmaze(tmdb_id, last_aired)
+                return JSONResponse(content={"last_aired": last_aired})
+            else:
+                await cache_tvmaze(tmdb_id, "")
+                return JSONResponse(content={"last_aired": ""})
+    except Exception:
+        return JSONResponse(content={"last_aired": ""})
 @user_router.get("/api/medusa-shows")
 async def get_medusa_shows():
     tmdb_ids = await get_medusa_tmdb_ids()
@@ -330,8 +379,8 @@ admin_router = APIRouter(prefix="/admin")
 @admin_router.get("", response_class=HTMLResponse)
 async def admin_dashboard(request: Request, _=Depends(require_admin)):
     pending = await get_suggestions("pending")
-    approved = await get_suggestions("approved")
-    ignored = await get_suggestions("ignored")
+    approved = await get_suggestions("approved", max_days=30)
+    ignored = await get_suggestions("ignored", max_days=30)
     return templates.TemplateResponse("admin.html", {
         "request": request,
         "pending": pending,
@@ -385,6 +434,7 @@ async def save_settings_form(
     my_streaming_services: str = Form(""),
     card_min_width: str = Form("200"),
     grid_gap: str = Form("1.5"),
+    show_age_threshold: str = Form("10"),
 ):
     await save_settings({
         "medusa_url": medusa_url.strip(),
@@ -397,6 +447,7 @@ async def save_settings_form(
         "my_streaming_services": my_streaming_services.strip(),
         "card_min_width": card_min_width.strip(),
         "grid_gap": grid_gap.strip(),
+        "show_age_threshold": show_age_threshold.strip(),
     })
     return RedirectResponse("/admin/settings?msg=saved", status_code=303)
 

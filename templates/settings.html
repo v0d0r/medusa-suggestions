@@ -220,6 +220,12 @@
             <div class="hint">Minimum TMDb rating (0-10). Shows below this won't appear. Set to 0 to disable.</div>
         </div>
 
+        <div class="field">
+            <label for="show_age_threshold">Show age threshold (years)</label>
+            <input type="number" id="show_age_threshold" name="show_age_threshold" value="{{ settings.show_age_threshold or 10 }}" min="1" max="50" step="1">
+            <div class="hint">Shows older than this with no streaming providers will be marked "Unlikely Available". A TVmaze check is done as a fallback. Default: 10</div>
+        </div>
+
         <h2>📐 Layout</h2>
 
         <div class="field">

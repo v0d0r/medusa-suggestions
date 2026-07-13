@@ -92,7 +92,7 @@
 </div>
 
 <div class="admin-section">
-    <h2>Approved <span class="count">({{ approved|length }})</span></h2>
+    <h2>Recently Approved (last 30 days) <span class="count">({{ approved|length }})</span></h2>
     {% if approved %}
     <div class="suggestion-list">
         {% for s in approved %}
@@ -115,7 +115,7 @@
 </div>
 
 <div class="admin-section">
-    <h2>Ignored <span class="count">({{ ignored|length }})</span></h2>
+    <h2>Recently Ignored (last 30 days) <span class="count">({{ ignored|length }})</span></h2>
     {% if ignored %}
     <div class="suggestion-list">
         {% for s in ignored %}

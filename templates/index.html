@@ -18,7 +18,7 @@
 {% if shows %}
 <div class="grid" id="shows-grid">
     {% for show in shows %}
-    <div class="card" data-tmdb-id="{{ show.tmdb_id }}">
+    <div class="card" data-tmdb-id="{{ show.tmdb_id }}" data-first-aired="{{ show.first_air_date or '' }}">
         {% if show.poster_path %}
         <a href="https://www.themoviedb.org/tv/{{ show.tmdb_id }}" target="_blank"><img src="{{ show.poster_path }}" alt="{{ show.title }}" loading="lazy"></a>
         {% else %}
@@ -57,13 +57,17 @@ document.addEventListener('DOMContentLoaded', function() {
     let myServices = [];
     let medusaIds = [];
 
-    // Fetch medusa shows and my services
+    let showAgeThreshold = 10;
+
+    // Fetch medusa shows, my services, and layout settings
     Promise.all([
         fetch('/api/medusa-shows').then(r => r.json()),
-        fetch('/api/my-services').then(r => r.json())
-    ]).then(([medusaData, servicesData]) => {
+        fetch('/api/my-services').then(r => r.json()),
+        fetch('/api/layout').then(r => r.json())
+    ]).then(([medusaData, servicesData, layoutData]) => {
         medusaIds = medusaData;
         myServices = servicesData.map(s => s.toLowerCase());
+        showAgeThreshold = parseInt(layoutData.show_age_threshold) || 10;
         markMedusaShows();
     }).catch(() => {});
 
@@ -101,6 +105,38 @@ document.addEventListener('DOMContentLoaded', function() {
                         );
                         if (matchedService) {
                             actions.innerHTML = '<div class="on-streaming">📺 Watch on ' + matchedService.name + '</div>';
+                        }
+                    } else {
+                        // Only check for unlikely available on popular and search tabs
+                        const currentTab = document.querySelector("[data-tab]") && document.querySelector("[data-tab]").dataset.tab;
+                        if (currentTab !== "popular" && currentTab !== "search") return;
+                        // No providers - check if show is old enough to be unlikely available
+                        const actions = document.getElementById('actions-' + tmdbId);
+                        if (!actions || actions.querySelector('.in-medusa') || actions.querySelector('.on-streaming')) return;
+
+                        const firstAired = card.dataset.firstAired;
+                        if (firstAired) {
+                            const showYear = parseInt(firstAired.substring(0, 4));
+                            const currentYear = new Date().getFullYear();
+                            if (currentYear - showYear >= showAgeThreshold) {
+                                // Old show with no providers - check TVmaze as fallback
+                                fetch('/api/tvmaze-check/' + tmdbId)
+                                    .then(r => r.json())
+                                    .then(data => {
+                                        if (data.last_aired) {
+                                            const lastAiredYear = parseInt(data.last_aired);
+                                            if (currentYear - lastAiredYear >= showAgeThreshold) {
+                                                actions.innerHTML = '<div class="unlikely-available">⏳ Unlikely Available</div>';
+                                            }
+                                        } else {
+                        // Only check for unlikely available on popular and search tabs
+                        const currentTab = document.querySelector("[data-tab]") && document.querySelector("[data-tab]").dataset.tab;
+                        if (currentTab !== "popular" && currentTab !== "search") return;
+                                            actions.innerHTML = '<div class="unlikely-available">⏳ Unlikely Available</div>';
+                                        }
+                                    })
+                                    .catch(() => {});
+                            }
                         }
                     }
                 })
@@ -152,6 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         const card = document.createElement('div');
                         card.className = 'card';
                         card.dataset.tmdbId = show.tmdb_id;
+                        card.dataset.firstAired = show.first_air_date || '';
 
                         const posterHtml = show.poster_path
                             ? '<a href="https://www.themoviedb.org/tv/' + show.tmdb_id + '" target="_blank"><img src="' + show.poster_path + '" alt="' + show.title + '" loading="lazy"></a>'

@@ -24,6 +24,9 @@ A lightweight TV show suggestion and discovery app that integrates with [Medusa]
   - Excluded countries
   - Excluded genres (checkboxes)
   - Minimum rating
+- **Unlikely Available Detection** — Old shows (configurable threshold) with no streaming providers are checked against TVmaze and flagged as "⏳ Unlikely Available" instead of showing a suggest button (only on Popular and Search tabs)
+- **Show Age Threshold** — Configurable in admin settings (default: 10 years). Works with TVmaze API as a fallback to verify show activity
+- **Auto-cleanup Admin Dashboard** — Approved and ignored suggestions automatically hide after 30 days to keep the admin view clean
 - **Medusa Integration** — Uses Medusa API v2 to add shows by TVDB ID
 - **Dark Theme** — Responsive UI with hamburger menu on mobile
 - **Configurable Layout** — Card size and grid gap adjustable in settings
