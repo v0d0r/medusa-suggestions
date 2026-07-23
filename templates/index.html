@@ -84,6 +84,8 @@ document.addEventListener('DOMContentLoaded', function() {
         medusaIds = medusaData;
         myServices = servicesData.map(s => s.toLowerCase());
         showAgeThreshold = parseInt(layoutData.show_age_threshold) || 10;
+        document.documentElement.style.setProperty("--card-min-width", (layoutData.card_min_width || "200") + "px");
+        document.documentElement.style.setProperty("--grid-gap", (layoutData.grid_gap || "1.5") + "rem");
         markMedusaShows();
     }).catch(() => {});
 
