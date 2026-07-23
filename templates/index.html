@@ -16,6 +16,14 @@
 </div>
 {% endif %}
 
+{% if tab == "upcoming" %}
+<div class="sort-toggle">
+    <span>Filter:</span>
+    <a href="/upcoming?new_only=1" class="{% if new_only != '0' %}active{% endif %}">New Premieres</a>
+    <a href="/upcoming?new_only=0" class="{% if new_only == '0' %}active{% endif %}">Airing This Week</a>
+</div>
+{% endif %}
+
 {% if tab == "search" %}
 <form class="search-bar" action="/search" method="get">
     <input type="text" name="q" placeholder="Search for a TV show..." value="{{ query or '' }}" autofocus>
@@ -57,7 +65,7 @@
 </div>
 
 <div style="text-align: center; margin-top: 2rem;">
-    <button id="load-more" class="btn-load-more" data-tab="{{ tab }}" data-query="{{ query or '' }}" data-next-page="4">Show More</button>
+    <button id="load-more" class="btn-load-more" data-tab="{{ tab }}" data-query="{{ query or '' }}" data-new-only="{{ new_only or '1' }}" data-next-page="4">Show More</button>
 </div>
 
 <script>
@@ -182,6 +190,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             let url = '/api/shows?tab=' + tab + '&start_page=' + nextPage;
             if (query) url += '&q=' + encodeURIComponent(query);
+            if (tab === 'upcoming') {
+                const newOnly = this.dataset.newOnly || '1';
+                url += '&new_only=' + newOnly;
+            }
 
             fetch(url)
                 .then(r => r.json())

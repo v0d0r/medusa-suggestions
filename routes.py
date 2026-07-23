@@ -208,12 +208,13 @@ async def airing(request: Request):
 
 
 @user_router.get("/upcoming", response_class=HTMLResponse)
-async def upcoming(request: Request):
-    shows = await tmdb_client.on_the_air(user_id=get_current_user_id(request))
+async def upcoming(request: Request, new_only: str = "1"):
+    shows = await tmdb_client.on_the_air(user_id=get_current_user_id(request), new_only=(new_only == "1"))
     return templates.TemplateResponse("index.html", {
         "request": request,
         "shows": shows,
         "tab": "upcoming",
+        "new_only": new_only,
         "user": get_current_user(request),
     })
 
@@ -280,7 +281,8 @@ async def get_more_shows(request: Request, tab: str = "trending", start_page: in
     elif tab == "airing":
         shows = await tmdb_client.airing_today(start_page=start_page, user_id=user_id)
     elif tab == "upcoming":
-        shows = await tmdb_client.on_the_air(start_page=start_page, user_id=user_id)
+        new_only = request.query_params.get("new_only", "1") == "1"
+        shows = await tmdb_client.on_the_air(start_page=start_page, user_id=user_id, new_only=new_only)
     elif tab == "search" and q:
         shows = await tmdb_client.search(q, start_page=start_page, user_id=user_id)
     else:
@@ -396,8 +398,10 @@ async def approve_suggestion(suggestion_id: int, request: Request, _=Depends(req
     suggestion = await update_suggestion_status(suggestion_id, "approved")
     if not suggestion:
         raise HTTPException(status_code=404, detail="Suggestion not found")
-    if suggestion.get("tvdb_id"):
-        await medusa_client.add_show(suggestion["tvdb_id"])
+    tvdb_id = suggestion.get("tvdb_id")
+    tmdb_id = suggestion.get("tmdb_id")
+    if tvdb_id or tmdb_id:
+        await medusa_client.add_show(tvdb_id=tvdb_id, tmdb_id=tmdb_id)
     return RedirectResponse("/admin", status_code=303)
 
 

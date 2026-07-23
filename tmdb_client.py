@@ -169,8 +169,20 @@ class TMDbClient:
         """Get shows airing today - uses dedicated TMDb endpoint."""
         return await self._get_dedicated("tv/airing_today", start_page=start_page, user_id=user_id)
 
-    async def on_the_air(self, start_page: int = 1, user_id: int | None = None) -> list[dict]:
-        """Get shows on the air - uses dedicated TMDb endpoint."""
+    async def on_the_air(self, start_page: int = 1, user_id: int | None = None, new_only: bool = True) -> list[dict]:
+        """Get upcoming/on-the-air shows.
+        If new_only=True, uses discover endpoint to find shows premiering from today up to 1 year ahead.
+        If new_only=False, uses the standard on_the_air endpoint (all shows with upcoming episodes)."""
+        if new_only:
+            from datetime import date, timedelta
+            today = date.today().isoformat()
+            one_year = (date.today() + timedelta(days=365)).isoformat()
+            return await self._discover(
+                start_page=start_page,
+                user_id=user_id,
+                sort_by="first_air_date.asc",
+                **{"first_air_date.gte": today, "first_air_date.lte": one_year}
+            )
         return await self._get_dedicated("tv/on_the_air", start_page=start_page, user_id=user_id)
 
     async def get_external_ids(self, tmdb_id: int) -> dict:
